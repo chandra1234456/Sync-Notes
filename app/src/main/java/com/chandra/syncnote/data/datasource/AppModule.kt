@@ -1,0 +1,49 @@
+package com.chandra.syncnote.data.datasource
+import android.app.Application
+import androidx.room.Room
+import com.chandra.syncnote.data.repository.NoteRepositoryImpl
+import com.chandra.syncnote.domain.repository.NoteRepository
+import com.chandra.syncnote.domain.usecases.AddNoteUseCase
+import com.chandra.syncnote.domain.usecases.DeleteNoteUseCase
+import com.chandra.syncnote.domain.usecases.GetNoteByIdUseCase
+import com.chandra.syncnote.domain.usecases.GetNotesUseCase
+import com.chandra.syncnote.domain.usecases.NoteUseCase
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideDatabase(app: Application): SyncNoteDatabase =
+        Room.databaseBuilder(
+            app,
+            SyncNoteDatabase::class.java,
+            SyncNoteDatabase.DATA_BASE_NAME
+        ).build()
+
+    @Provides
+    @Singleton
+    fun provideNotesDao(db: SyncNoteDatabase): NotesDao = db.notesDao
+
+    @Provides
+    @Singleton
+    fun provideNoteRepository(notesDao: NotesDao): NoteRepository =
+        NoteRepositoryImpl(notesDao)
+
+    @Provides
+    @Singleton
+    fun provideNoteUseCases(repository: NoteRepository): NoteUseCase =
+        NoteUseCase(
+            addNoteUseCase = AddNoteUseCase(repository),
+            deleteNoteUseCase = DeleteNoteUseCase(repository),
+            getNoteByIdUseCase = GetNoteByIdUseCase(repository),
+            getNoteUseCase = GetNotesUseCase(repository)
+        )
+}
+

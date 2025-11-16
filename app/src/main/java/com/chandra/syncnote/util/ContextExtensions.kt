@@ -26,3 +26,5 @@ fun Context.getAppVersion(): Pair<String, Long> {
         return Pair("Unknown", -1L) // Handle the error case
     }
 }
+
+
