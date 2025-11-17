@@ -7,7 +7,10 @@ import com.chandra.syncnote.domain.model.Note
 import com.chandra.syncnote.domain.usecases.NoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -56,6 +59,12 @@ class NoteViewModel @Inject constructor(
             onResult(note)
         }
     }
+    var searchText = MutableStateFlow("")
+    val filteredNotes = searchText.combine(notes) { query, list ->
+        if (query.isBlank()) list
+        else list.filter { it.title.contains(query, ignoreCase = true) }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
 }
 
 

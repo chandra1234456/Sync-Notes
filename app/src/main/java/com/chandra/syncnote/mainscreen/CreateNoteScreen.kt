@@ -24,7 +24,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +42,6 @@ import com.chandra.syncnote.navigation.Screen
 import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.util.dialog.MyAlertDialog
 import com.chandra.syncnote.util.toastMessage
-import dagger.hilt.android.lifecycle.HiltViewModel
 
 @Composable
 fun CreateNoteScreen(
@@ -89,7 +87,7 @@ fun CreateNoteScreen(
             placeholder = { Text(text = "Please Enter Description here !",style = AppBarTypography.bodyMedium) },
             shape = RoundedCornerShape(16.dp)
         )
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Button(modifier = Modifier.height(48.dp),
             onClick = {

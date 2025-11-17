@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,8 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
@@ -55,14 +58,40 @@ fun HomeContent(
     modifier: Modifier = Modifier,
     viewModel: NoteViewModel = hiltViewModel()
 ) {
-    val state by viewModel.notes.collectAsState()
+    val notes by viewModel.filteredNotes.collectAsState()
+    val search by viewModel.searchText.collectAsState()
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(6.dp)
     ) {
-        items(state) { note ->
+        item {
+            OutlinedTextField(
+                value = search,
+                onValueChange = { viewModel.searchText.value = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .height(56.dp),
+                placeholder = { Text("Search notes...") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null)
+                },
+                trailingIcon = {
+                    if (search.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.searchText.value = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear")
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        items(notes) { note ->
             SyncNoteItem(
                 note = note,
                 modifier = Modifier
@@ -71,11 +100,11 @@ fun HomeContent(
                         // Handle note click
                     }
             )
-
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
