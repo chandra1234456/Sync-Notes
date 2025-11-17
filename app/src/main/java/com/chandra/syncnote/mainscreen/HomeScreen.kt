@@ -1,11 +1,14 @@
 package com.chandra.syncnote.mainscreen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,10 +44,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.util.getAppVersion
 import com.chandra.syncnote.util.toastMessage
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeContent(
     modifier: Modifier = Modifier,
@@ -73,9 +78,14 @@ fun HomeContent(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteAppScaffold(navController: NavHostController) {
+fun NoteAppScaffold(
+    navController: NavHostController
+/*,
+   onSortClick : @Composable () -> Unit*/
+) {
     val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -89,7 +99,7 @@ fun NoteAppScaffold(navController: NavHostController) {
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Sync Note", color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    title = { Text("Sync Note", style = AppBarTypography.titleLarge, color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     navigationIcon = {
                         IconButton(onClick = {
                             context.toastMessage("Menu")
@@ -101,7 +111,7 @@ fun NoteAppScaffold(navController: NavHostController) {
                         }
                     },
                     actions = {
-                        IconButton(onClick = { context.toastMessage("Sort") }) {
+                        IconButton(onClick = { /*onSortClick() */}) {
                             Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
                         }
                     },
@@ -127,17 +137,18 @@ fun AppDrawer() {
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
+                .heightIn(max = 400.dp)
         ) {
             Spacer(Modifier.height(12.dp))
             val (versionName, versionCode) = context.getAppVersion()
             Text(
                 "About Us",
-                style = MaterialTheme.typography.titleLarge,
+                style = AppBarTypography.titleLarge,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             Text(
-                "Version $versionName",
-                style = MaterialTheme.typography.titleMedium,
+                "Version : $versionName",
+                style = AppBarTypography.titleSmall,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             NavigationDrawerItem(

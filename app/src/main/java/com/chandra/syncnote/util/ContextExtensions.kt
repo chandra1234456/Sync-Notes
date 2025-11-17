@@ -4,9 +4,13 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
-fun Context.toastMessage(message: String){
-    Toast.makeText(this,message, Toast.LENGTH_SHORT).show()
+fun Context.toastMessage(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
 
 fun Context.getAppVersion(): Pair<String, Long> {
@@ -27,4 +31,10 @@ fun Context.getAppVersion(): Pair<String, Long> {
     }
 }
 
-
+@RequiresApi(Build.VERSION_CODES.O)
+fun getDateTimeZone(timeStamp: Long): String {
+    return Instant.ofEpochMilli(timeStamp)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern("dd MMM yyyy • hh:mm a"))
+}

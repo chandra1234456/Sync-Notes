@@ -1,5 +1,7 @@
 package com.chandra.syncnote.mainscreen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.chandra.syncnote.domain.model.Note
+import com.chandra.syncnote.ui.theme.AppBarTypography
+import com.chandra.syncnote.util.getDateTimeZone
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SyncNoteItem(
     note: Note,
@@ -38,7 +43,7 @@ fun SyncNoteItem(
             // Title
             Text(
                 text = note.title,
-                style = MaterialTheme.typography.titleLarge,
+                style = AppBarTypography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -46,13 +51,20 @@ fun SyncNoteItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Content (You had title twice — fixed here)
             Text(
                 text = note.content,
-                style = MaterialTheme.typography.bodyMedium,
+                style = AppBarTypography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 10,
                 overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = getDateTimeZone(note.timeStamp),
+                style = AppBarTypography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                overflow = TextOverflow.Clip
             )
         }
     }

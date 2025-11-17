@@ -40,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.chandra.syncnote.domain.model.Note
 import com.chandra.syncnote.navigation.Screen
+import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.util.dialog.MyAlertDialog
 import com.chandra.syncnote.util.toastMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,31 +60,33 @@ fun CreateNoteScreen(
         var textTitle by remember { mutableStateOf(TextFieldValue("")) }
         var textDescription by remember { mutableStateOf(TextFieldValue("")) }
         Spacer(modifier = Modifier.height(2.dp))
-        Text(text = "Title ")
+        Text(text = "Title ",style = AppBarTypography.bodyMedium)
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = textTitle,
             maxLines = 2,
             minLines = 1,
+            textStyle = AppBarTypography.bodyMedium,
             onValueChange = {
                 textTitle = it
             },
-            placeholder = { Text(text = "Please Enter Title") },
+            placeholder = { Text(text = "Please Enter Title",style = AppBarTypography.bodyMedium) },
             shape = RoundedCornerShape(16.dp)
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Text(text = "Description ")
+        Text(text = "Description ", style = AppBarTypography.bodyMedium)
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp),
             value = textDescription,
             maxLines = 10,
+            textStyle = AppBarTypography.bodyMedium,
             minLines = 1,
             onValueChange = {
                 textDescription = it
             },
-            placeholder = { Text(text = "Please Enter Description here !") },
+            placeholder = { Text(text = "Please Enter Description here !",style = AppBarTypography.bodyMedium) },
             shape = RoundedCornerShape(16.dp)
         )
         Spacer(modifier = Modifier.height(15.dp))
@@ -100,7 +103,7 @@ fun CreateNoteScreen(
                 context.toastMessage("Note Saved SuccessFully")
                 navController.navigate(Screen.Home.route)
         }) {
-            Text(text = "Save Note")
+            Text(text = "Save Note",style = AppBarTypography.labelLarge)
         }
     }
 }
@@ -122,6 +125,7 @@ fun CreateNoteScaffold(navController: NavHostController) {
                     title = {
                         Text(
                             "Add Note",
+                            style = AppBarTypography.titleLarge,
                             color = Color.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
