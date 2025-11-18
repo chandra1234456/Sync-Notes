@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.chandra.syncnote.mainscreen.CreateNoteScaffold
 import com.chandra.syncnote.mainscreen.NoteAppScaffold
@@ -37,27 +38,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
+            val navBackStackEntry = navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry.value?.destination?.route
             SyncNoteTheme {
-                Scaffold(floatingActionButton = {
-                    ExtendedFloatingActionButton(
-                        text = {
-                            Text(
-                                "Add Note",
-                                style = AppBarTypography.labelLarge,
-                                color = Color.Black
+                Scaffold(
+                    floatingActionButton = {
+                        if(currentRoute == Screen.Home.route) {
+                            ExtendedFloatingActionButton(
+                                text = {
+                                    Text(
+                                        "Add Note",
+                                        style = AppBarTypography.labelLarge,
+                                        color = Color.Black
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        Icons.Rounded.Add,
+                                        tint = Color.Black, contentDescription = "Add Note"
+                                    )
+                                },
+                                onClick = {
+                                    navController.navigate(Screen.CreateNote.route)
+                                },
+                                expanded = true
                             )
-                        },
-                        icon = {
-                            Icon(
-                                Icons.Rounded.Add,
-                                tint = Color.Black, contentDescription = "Add Note"
-                            )
-                        },
-                        onClick = {
-                             navController.navigate(Screen.CreateNote.route)
-                        },
-                        expanded = true
-                    )
+                        }
                 }) { _ ->
                     AppNavHost(navController = navController)
                 }

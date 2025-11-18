@@ -13,3 +13,60 @@
 .externalNativeBuild
 .cxx
 local.properties
+# ==========================================
+# ANDROID / ANDROID STUDIO / INTELLIJ
+# ==========================================
+
+# Gradle files
+.gradle/
+build/
+!gradle-wrapper.jar
+
+# Signing files
+*.jks
+*.keystore
+**/debug.keystore
+
+# IntelliJ / Android Studio settings
+.idea/
+*.iws
+
+# Android generated
+captures/
+output.json
+*.apk
+*.ap_
+*.aab
+
+# Crashlytics / Firebase
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Navigation Editor temp files
+.navigation/
+
+# ARTIFACTS / CACHES
+*.log
+*.map
+*.hprof
+
+# ==========================================
+# OS JUNK
+# ==========================================
+Thumbs.db
+
+# ==========================================
+# KOTLIN / JAVA / GENERAL
+# ==========================================
+*.class
+*.jar
+*.war
+*.ear
+
+# ==========================================
+# LOCAL ENV FILES
+# ==========================================
+*.env
+.env.local
+

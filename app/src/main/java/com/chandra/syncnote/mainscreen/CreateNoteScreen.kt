@@ -1,5 +1,6 @@
 package com.chandra.syncnote.mainscreen
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,87 +41,123 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.chandra.syncnote.domain.model.Note
 import com.chandra.syncnote.navigation.Screen
 import com.chandra.syncnote.ui.theme.AppBarTypography
+import com.chandra.syncnote.util.dialog.ErrorDialog
 import com.chandra.syncnote.util.dialog.MyAlertDialog
 import com.chandra.syncnote.util.toastMessage
 
 @Composable
 fun CreateNoteScreen(
     modifier: Modifier = Modifier,
-    viewModel: NoteViewModel = hiltViewModel(),
-    navController: NavHostController
+    title: TextFieldValue,
+    description: TextFieldValue,
+    onTitleChange: (TextFieldValue) -> Unit,
+    onDescriptionChange: (TextFieldValue) -> Unit,
 ) {
-    val context = LocalContext.current
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        var textTitle by remember { mutableStateOf(TextFieldValue("")) }
-        var textDescription by remember { mutableStateOf(TextFieldValue("")) }
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(text = "Title ",style = AppBarTypography.bodyMedium)
+
+        Text(text = "Title", style = AppBarTypography.bodyMedium)
+
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = textTitle,
-            maxLines = 2,
-            minLines = 1,
-            textStyle = AppBarTypography.bodyMedium,
-            onValueChange = {
-                textTitle = it
-            },
-            placeholder = { Text(text = "Please Enter Title",style = AppBarTypography.bodyMedium) },
+            value = title,
+            onValueChange = onTitleChange,
+            placeholder = { Text("Please Enter Title") },
             shape = RoundedCornerShape(16.dp)
         )
+
         Spacer(modifier = Modifier.height(10.dp))
-        Text(text = "Description ", style = AppBarTypography.bodyMedium)
+
+        Text(text = "Description", style = AppBarTypography.bodyMedium)
+
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp),
-            value = textDescription,
-            maxLines = 10,
-            textStyle = AppBarTypography.bodyMedium,
-            minLines = 1,
-            onValueChange = {
-                textDescription = it
-            },
-            placeholder = { Text(text = "Please Enter Description here !",style = AppBarTypography.bodyMedium) },
+            value = description,
+            onValueChange = onDescriptionChange,
+            placeholder = { Text("Please Enter Description") },
             shape = RoundedCornerShape(16.dp)
         )
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Button(modifier = Modifier.height(48.dp),
-            onClick = {
-            viewModel.addNote(
-                Note(
-                    title = textTitle.text,
-                    content = textDescription.text,
-                    timeStamp = System.currentTimeMillis()
-                )
-            )
-                context.toastMessage("Note Saved SuccessFully")
-                navController.navigate(Screen.Home.route)
-        }) {
-            Text(text = "Save Note",style = AppBarTypography.labelLarge)
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateNoteScaffold(navController: NavHostController) {
+fun CreateNoteScaffold(
+    navController: NavHostController,
+    viewModel: NoteViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+
+    // LIFTED STATE
+    var textTitle by remember { mutableStateOf(TextFieldValue("")) }
+    var textDescription by remember { mutableStateOf(TextFieldValue("")) }
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val shouldShowDialog = remember { mutableStateOf(false) } // 1
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = { AppDrawer() }
-    ) {
+    val shouldShowDialog = remember { mutableStateOf(false) }
+
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorText by remember { mutableStateOf("") }
+    var errorDescription by remember { mutableStateOf("") }
+
+    ModalNavigationDrawer(drawerState = drawerState, drawerContent = { AppDrawer() }) {
+
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            floatingActionButton = {
+                if (currentRoute == Screen.CreateNote.route) {
+                    ExtendedFloatingActionButton(
+                        text = { Text("Save Note") },
+                        icon = { Icon(Icons.Rounded.Check, contentDescription = "Save Note") },
+                        onClick = {
+
+                            // VALIDATION OPTIONAL
+                            if (textTitle.text.isBlank()) {
+                                showErrorDialog = true
+                                errorText = "Title"
+                                errorDescription = "Title cannot be empty"
+                                Toast.makeText(context, "Title cannot be empty", Toast.LENGTH_SHORT)
+                                    .show()
+                                return@ExtendedFloatingActionButton
+                            }
+                            if (textDescription.text.isBlank()) {
+                                showErrorDialog = true
+                                errorText = "Description"
+                                errorDescription = "Description cannot be empty"
+                                Toast.makeText(
+                                    context,
+                                    "Description cannot be empty",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                return@ExtendedFloatingActionButton
+                            }
+
+                            // SAVE NOTE
+                            viewModel.addNote(
+                                Note(
+                                    title = textTitle.text,
+                                    content = textDescription.text,
+                                    timeStamp = System.currentTimeMillis()
+                                )
+                            )
+                            Toast.makeText(context, "Note Saved Successfully", Toast.LENGTH_SHORT)
+                                .show()
+
+                            navController.navigate(Screen.Home.route)
+                        }
+                    )
+                }
+            },
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -149,14 +189,28 @@ fun CreateNoteScaffold(navController: NavHostController) {
                 )
                 // Show dialog when true
                 if (shouldShowDialog.value) {
-                    MyAlertDialog(shouldShowDialog = shouldShowDialog){
+                    MyAlertDialog(shouldShowDialog = shouldShowDialog) {
                         navController.navigate(Screen.Home.route)
                     }
                 }
+                if (showErrorDialog) {
+                    ErrorDialog(
+                        title = errorText,
+                        message = errorDescription,
+                        onDismiss = { showErrorDialog = false }
+                    )
+                }
             }
         ) { innerPadding ->
-            // Content goes here, respecting Scaffold padding
-            CreateNoteScreen(Modifier.padding(innerPadding), navController = navController)
+
+            CreateNoteScreen(
+                modifier = Modifier.padding(innerPadding),
+                title = textTitle,
+                description = textDescription,
+                onTitleChange = { textTitle = it },
+                onDescriptionChange = { textDescription = it }
+            )
         }
     }
 }
+
