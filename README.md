@@ -1,3 +1,3 @@
 # Sync Note
 
-![Home Screen](assets/screenshots/HomeScreen.png)
+![Home Screen](assets\Screenshots\HomeScreen.png)
