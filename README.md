@@ -5,5 +5,3 @@
   <img src="assets/screenshots/homescreen.jpg" width="100%"/>
 </div>
 
-
-![Home Screen]()
