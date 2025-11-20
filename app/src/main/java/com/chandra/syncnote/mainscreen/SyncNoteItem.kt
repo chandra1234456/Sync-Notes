@@ -2,6 +2,7 @@ package com.chandra.syncnote.mainscreen
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,11 +14,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.chandra.syncnote.domain.model.Note
 import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.util.getDateTimeZone
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -66,6 +70,80 @@ fun SyncNoteItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 overflow = TextOverflow.Clip
             )
+        }
+    }
+}
+
+
+@Preview
+@Composable
+fun SyncNoteItemNew(
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        contentColor = Color.Blue,
+        border= BorderStroke(2.dp,Color.Red),
+        tonalElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+
+            // Title
+            Text(
+                text = "Titleejhfbukhegfuhrvfhbrhbfgb",
+                style = AppBarTypography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+
+                    // Title
+                    Text(
+                        text = "Titleejhfbukhegfuhrvfhbrhbfgb",
+                        style = AppBarTypography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Content",
+                        style = AppBarTypography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 10,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "123456789",
+                        style = AppBarTypography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Clip
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
