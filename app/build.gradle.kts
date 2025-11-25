@@ -5,7 +5,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
-    // id ("org.jetbrains.kotlin.plugin.compose") version "2.2.10"
 }
 
 android {
@@ -70,6 +69,10 @@ android {
     lint {
         abortOnError = false
     }
+    configurations.all {
+        exclude("androidx.wear.compose")
+    }
+
 }
 
 dependencies {
@@ -83,6 +86,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -119,7 +123,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     // Accompanist - Status Bar
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 }
+
 kapt {
     correctErrorTypes = true
 }

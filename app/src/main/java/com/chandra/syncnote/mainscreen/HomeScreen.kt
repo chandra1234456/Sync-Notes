@@ -3,13 +3,16 @@ package com.chandra.syncnote.mainscreen
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -17,28 +20,42 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Title
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -106,19 +123,17 @@ fun HomeContent(
 }
 
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteAppScaffold(
     navController: NavHostController
-/*,
-   onSortClick : @Composable () -> Unit*/
 ) {
     val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    var showSheet by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -128,7 +143,15 @@ fun NoteAppScaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Sync Note", style = AppBarTypography.titleLarge, color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    title = {
+                        Text(
+                            "Sync Note",
+                            style = AppBarTypography.titleLarge,
+                            color = Color.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = {
                             context.toastMessage("Menu")
@@ -140,7 +163,9 @@ fun NoteAppScaffold(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { /*onSortClick() */}) {
+                        IconButton(onClick = {
+                            showSheet = true
+                        }) {
                             Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
                         }
                     },
@@ -150,6 +175,11 @@ fun NoteAppScaffold(
                     ),
                     scrollBehavior = scrollBehavior
                 )
+                if (showSheet) {
+                    BottomSheet() {
+                        showSheet = false
+                    }
+                }
             }
         ) { innerPadding ->
             // Content goes here, respecting Scaffold padding
@@ -195,6 +225,60 @@ fun AppDrawer() {
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomSheet(onDismiss: () -> Unit) {
+    val modalBottomSheetState = rememberModalBottomSheetState()
+
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss() },
+        sheetState = modalBottomSheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                DefaultCustomChip(icon = Icons.Default.Title, text = "Title")
+                Spacer(modifier = Modifier.width(8.dp))
+                DefaultCustomChip(icon = Icons.Default.CalendarMonth, text = "Created Date")
+                Spacer(modifier = Modifier.width(8.dp))
+                DefaultCustomChip(icon = Icons.Default.Refresh, text = "Modified Date")
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+
+            Row {
+                DefaultCustomChip(icon = Icons.Default.ArrowUpward, text = "Ascending")
+                Spacer(modifier = Modifier.width(10.dp))
+                DefaultCustomChip(icon = Icons.Default.ArrowDownward, text = "Descending")
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = onDismiss) {
+                    Text(
+                        text = "Confirm"
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                OutlinedButton(onClick = onDismiss) {
+                    Text(
+                        text = "Cancel"
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+        }
+    }
+}
+
+
 
 
 
