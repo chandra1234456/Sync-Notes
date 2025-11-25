@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,15 +22,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.BottomSheetDefaults
@@ -48,7 +50,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -60,11 +61,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -182,7 +185,7 @@ fun NoteAppScaffold(
                     scrollBehavior = scrollBehavior
                 )
                 if (showSheet) {
-                    BottomSheet() {
+                    BottomSheet {
                         showSheet = false
                     }
                 }
@@ -195,8 +198,10 @@ fun NoteAppScaffold(
 }
 
 @Composable
+@Preview
 fun AppDrawer() {
     val context = LocalContext.current
+    var onMode by remember { mutableStateOf("Dark") }
     ModalDrawerSheet {
         Column(
             modifier = Modifier
@@ -207,7 +212,7 @@ fun AppDrawer() {
             Spacer(Modifier.height(12.dp))
             val (versionName, versionCode) = context.getAppVersion()
             Text(
-                "About Us",
+                "About us",
                 style = AppBarTypography.titleLarge,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
@@ -216,6 +221,42 @@ fun AppDrawer() {
                 style = AppBarTypography.titleSmall,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(8.dp)
+                    .clickable{ onMode = if (onMode == "Dark") "Light" else "Dark"},
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Left Icon
+                Icon(
+                    imageVector = Icons.Default.Bedtime,
+                    contentDescription = "Theme Icon",
+                    modifier = Modifier.size(28.dp),
+                    tint = Color.Magenta
+                )
+                Spacer(Modifier.width(16.dp))
+                // Texts
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        "Theme Settings",
+                        style = AppBarTypography.titleSmall
+                    )
+                    Text(
+                        "Switch To $onMode Mode",
+                        style = AppBarTypography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+                // Right Arrow
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = "Forward Arrow",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
             NavigationDrawerItem(
                 icon = {
                     /*Icon(
@@ -329,65 +370,7 @@ fun BottomSheet(
         }
     }
 }
-/*@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BottomSheet(
-    onDismiss: () -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState()
 
-    var selectedSort by remember { mutableStateOf(SortOption.TITLE) }
-    var selectedOrder by remember { mutableStateOf(OrderOption.ASCENDING) }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-    ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp)
-        ) {
-
-            // SORT SECTION
-            IconWithText(Icons.Default.Sort, "Sort By")
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp)
-            ) {
-                item {
-                    DefaultCustomChip(Icons.Default.Title, "Title")
-                }
-                item {
-                    DefaultCustomChip(Icons.Default.CalendarMonth, "Created Date")
-                }
-                item {
-                    DefaultCustomChip(Icons.Default.Refresh, "Modified Date")
-                }
-            }
-
-            // ORDER SECTION
-            IconWithText(Icons.Default.SwapVert, "Order By")
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp)
-            ) {
-                item {
-                    DefaultCustomChip(Icons.Default.ArrowUpward, "Ascending")
-                }
-                item {
-                    DefaultCustomChip(Icons.Default.ArrowDownward, "Descending")
-                }
-            }
-
-        }
-    }
-}*/
 
 
 

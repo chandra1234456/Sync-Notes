@@ -60,7 +60,7 @@ fun CreateNoteScreen(
     ) {
 
         Text(text = "Title", style = AppBarTypography.bodyMedium)
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = title,
@@ -72,7 +72,7 @@ fun CreateNoteScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(text = "Description", style = AppBarTypography.bodyMedium)
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,7 +158,7 @@ fun CreateNoteScaffold(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            "Add Note",
+                            "Create New Note",
                             style = AppBarTypography.titleLarge,
                             color = Color.Black,
                             maxLines = 1,
