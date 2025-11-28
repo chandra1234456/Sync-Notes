@@ -223,7 +223,7 @@ fun AppDrawer() {
             )
             Row(
                 modifier = Modifier.fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(2.dp)
                     .clickable{ onMode = if (onMode == "Dark") "Light" else "Dark"},
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -233,7 +233,7 @@ fun AppDrawer() {
                     imageVector = Icons.Default.Bedtime,
                     contentDescription = "Theme Icon",
                     modifier = Modifier.size(28.dp),
-                    tint = Color.Magenta
+                    tint = Color.Black
                 )
                 Spacer(Modifier.width(16.dp))
                 // Texts

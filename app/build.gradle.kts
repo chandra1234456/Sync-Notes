@@ -124,6 +124,10 @@ dependencies {
     // Accompanist - Status Bar
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
+    implementation("androidx.core:core-splashscreen:1.2.0")
+
+
 }
 
 kapt {
