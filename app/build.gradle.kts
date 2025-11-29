@@ -36,7 +36,7 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = File("dummy.jks")
+            storeFile = rootProject.file("sync_note.jks")
             //storeFile = File("C:\\Users\\balachandra.d\\AndroidStudioProjects\\SyncNote\\sync_note.jks")//file(prop("C:Usersbalachandra.dAndroidStudioProjectssync_note.jks"))
             storePassword = prop("STORE_PASSWORD")
             keyAlias = prop("KEY_ALIAS")
@@ -48,8 +48,8 @@ android {
         getByName("release") {
             isMinifyEnabled = false
             isDebuggable = false
-            signingConfig = null
-            //signingConfig = signingConfigs.getByName("release")
+            //signingConfig = null
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

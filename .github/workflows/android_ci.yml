@@ -46,7 +46,6 @@ jobs:
           java-version: 17
           cache: 'gradle'
 
-      # OPTIONAL: Auto version bump
       - name: Version Bump
         uses: chkfung/android-version-actions@v1.2.3
         with:
@@ -56,35 +55,28 @@ jobs:
       - name: Grant execute permissions to gradlew
         run: chmod +x gradlew
 
-      # ----------------------------
-      # Build APK + AAB
-      # ----------------------------
+      # Build unsigned release outputs
       - name: Build Release APK and AAB
         run: ./gradlew clean assembleRelease bundleRelease
 
-      # ----------------------------
-      # Sign AAB or APK
-      # ----------------------------
+      # Sign outputs
       - name: Sign Release Build
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs/
+          releaseDirectory: app/build/outputs
           signingKeyBase64: ${{ secrets.SYNC_NOTE_KEYSTORE }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ALIAS_PASSWORD }}
 
-      # ----------------------------
-      # Upload as artifacts
-      # ----------------------------
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/*-signed.apk
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: release-aab
-          path: app/build/outputs/bundle/release/*.aab
+          path: app/build/outputs/bundle/release/*-signed.aab
