@@ -17,8 +17,8 @@ android {
         applicationId = "com.chandra.syncnote"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.1.2"
+        versionCode = 6
+        versionName = "1.1.3"
         //v1.0.0 - Major release (breaking changes)
         //v1.1.0 - Minor release (new features)
         //v1.1.1 - Patch release (bug fixes)
