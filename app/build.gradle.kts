@@ -17,8 +17,11 @@ android {
         applicationId = "com.chandra.syncnote"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.1.0"
+        //v1.0.0 - Major release (breaking changes)
+        //v1.1.0 - Minor release (new features)
+        //v1.1.1 - Patch release (bug fixes)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -33,7 +36,7 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = file(prop("STORE_FILE"))
+            storeFile = File("C:\\Users\\balachandra.d\\AndroidStudioProjects\\SyncNote\\sync_note.jks")//file(prop("C:Usersbalachandra.dAndroidStudioProjectssync_note.jks"))
             storePassword = prop("STORE_PASSWORD")
             keyAlias = prop("KEY_ALIAS")
             keyPassword = prop("KEY_PASSWORD")
@@ -98,6 +101,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.runtime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -137,7 +141,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     implementation("androidx.core:core-splashscreen:1.2.0")
-
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
 }
 

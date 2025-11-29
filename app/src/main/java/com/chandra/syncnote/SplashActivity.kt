@@ -8,6 +8,7 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.chandra.syncnote.github.GitHubUpdateChecker
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
