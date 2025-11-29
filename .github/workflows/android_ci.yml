@@ -46,37 +46,36 @@ jobs:
           java-version: 17
           cache: 'gradle'
 
-      - name: Version Bump
-        uses: chkfung/android-version-actions@v1.2.3
-        with:
-          gradlePath: app/build.gradle.kts
-          versionCode: ${{ github.run_number }}
-
       - name: Grant execute permissions to gradlew
         run: chmod +x gradlew
 
-      # Build unsigned release outputs
+      # Build UNSIGNED release first
       - name: Build Release APK and AAB
         run: ./gradlew clean assembleRelease bundleRelease
 
-      # Sign outputs
-      - name: Sign Release Build
+      # Sign with GitHub Action
+      - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs
+          releaseDirectory: app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SYNC_NOTE_KEYSTORE }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ALIAS_PASSWORD }}
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Sign AAB
+        uses: r0adkll/sign-android-release@v1
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*-signed.apk
+          releaseDirectory: app/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.SYNC_NOTE_KEYSTORE }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ALIAS_PASSWORD }}
 
-      - name: Upload AAB
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-aab
-          path: app/build/outputs/bundle/release/*-signed.aab
+          name: signed-app-release
+          path: |
+            app/build/outputs/apk/release/*-signed.apk
+            app/build/outputs/bundle/release/*-signed.aab

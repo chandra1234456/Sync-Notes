@@ -34,7 +34,7 @@ android {
             }
         }
     }
-    signingConfigs {
+   /* signingConfigs {
         create("release") {
             storeFile = rootProject.file("sync_note.jks")
             //storeFile = File("C:\\Users\\balachandra.d\\AndroidStudioProjects\\SyncNote\\sync_note.jks")//file(prop("C:Usersbalachandra.dAndroidStudioProjectssync_note.jks"))
@@ -42,14 +42,14 @@ android {
             keyAlias = prop("KEY_ALIAS")
             keyPassword = prop("KEY_PASSWORD")
         }
-    }
+    }*/
 
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
             isDebuggable = false
             //signingConfig = null
-            signingConfig = signingConfigs.getByName("release")
+            //signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
