@@ -1,11 +1,19 @@
+# https://youtu.be/Fh4UyfqeB4Y?si=IOqbszDkxzEXWo5v
 name: Android CI Pipeline
 
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags: [ 'v*' ]  # Trigger on version tags
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'Automated release'
 
 jobs:
   test:
@@ -32,10 +40,11 @@ jobs:
       - name: Run unit tests
         run: ./gradlew clean testDebugUnitTest
 
-  distribute:
-    name: Build & Sign Release
+  build-and-release:
+    name: Build & Release
     needs: test
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'tags/v') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout Code
@@ -51,48 +60,126 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install specific Build Tools
-        run: |
-          sdkmanager "build-tools;34.0.0"
-          sdkmanager "platforms;android-34"
-
       - name: Create Keystore File
         run: |
           echo "${{ secrets.SYNC_NOTE_KEYSTORE }}" > keystore.b64
           base64 -d keystore.b64 > sync_note.jks
+          echo "Keystore created"
 
       - name: Grant execute permissions to gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK and AAB
-        run: ./gradlew clean assembleRelease bundleRelease
+      - name: Determine Version
+        id: version
+        run: |
+          if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            # Extract version from tag (v1.0.0 -> 1.0.0)
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
 
-      - name: Sign APK using apksigner
+      - name: Update Version in Gradle
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Update versionName in build.gradle.kts
+          sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" app/build.gradle.kts
+          # Update versionCode (use run number)
+          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle.kts
+
+      - name: Build Release APK and AAB
+        run: |
+          ./gradlew clean assembleRelease bundleRelease
+          echo "Build completed successfully"
+
+      - name: Verify Build Outputs
+        run: |
+          echo "=== Build Outputs ==="
+          ls -la app/build/outputs/apk/release/
+          ls -la app/build/outputs/bundle/release/
+          echo "APK size: $(stat -f%z app/build/outputs/apk/release/app-release.apk) bytes"
+          echo "AAB size: $(stat -f%z app/build/outputs/bundle/release/app-release.aab) bytes"
+
+      - name: Sign APK
         run: |
           cd app/build/outputs/apk/release
-          $ANDROID_HOME/build-tools/34.0.0/zipalign -v -p 4 app-release.apk app-release-aligned.apk
           $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
             --ks ../../../../sync_note.jks \
             --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
             --ks-key-alias "${{ secrets.ALIAS }}" \
             --key-pass pass:"${{ secrets.ALIAS_PASSWORD }}" \
             --out app-release-signed.apk \
-            app-release-aligned.apk
+            app-release.apk
+          echo "APK signed successfully"
 
-      - name: Sign AAB using jarsigner
+      - name: Rename Artifacts with Version
         run: |
-          cd app/build/outputs/bundle/release
-          jarsigner -verbose \
-            -keystore ../../../../sync_note.jks \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.ALIAS_PASSWORD }}" \
-            app-release.aab \
-            "${{ secrets.ALIAS }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          cp app/build/outputs/apk/release/app-release-signed.apk "app-v$VERSION-signed.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "app-v$VERSION.aab"
+          echo "Artifacts renamed with version v$VERSION"
 
-      - name: Upload Signed APK
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            # Release v${{ steps.version.outputs.version }}
+
+            ## 📦 Download Links
+            - **APK**: `app-v${{ steps.version.outputs.version }}-signed.apk` - Ready to install on Android devices
+            - **AAB**: `app-v${{ steps.version.outputs.version }}.aab` - For publishing to Google Play Store
+
+            ## 🚀 Installation
+            1. Download the APK file
+            2. Enable "Install from unknown sources" in Android settings
+            3. Open the downloaded file and install
+
+            ## 📝 Release Notes
+            ${{ github.event.inputs.release_notes }}
+
+            **Build Information:**
+            - Build Number: #${{ github.run_number }}
+            - Build Date: ${{ github.event.head_commit.timestamp }}
+            - Commit: [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+
+            ---
+            *Automatically built and released via GitHub Actions*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./app-v${{ steps.version.outputs.version }}-signed.apk
+          asset_name: app-v${{ steps.version.outputs.version }}-signed.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload AAB Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./app-v${{ steps.version.outputs.version }}.aab
+          asset_name: app-v${{ steps.version.outputs.version }}.aab
+          asset_content_type: application/octet-stream
+
+      - name: Upload to Artifacts (Backup)
         uses: actions/upload-artifact@v4
         with:
-          name: signed-app-release
+          name: release-v${{ steps.version.outputs.version }}
           path: |
-            app/build/outputs/apk/release/app-release-signed.apk
-            app/build/outputs/bundle/release/app-release.aab
+            app-v${{ steps.version.outputs.version }}-signed.apk
+            app-v${{ steps.version.outputs.version }}.aab
+          retention-days: 30
