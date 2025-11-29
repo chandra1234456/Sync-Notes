@@ -16,3 +16,13 @@
 ## [1.1.0] - 2025-11-29
 ### Added
 - GITHUB RELEASE SOFTWARE UPDATE Functionality Added (Testing Case)
+
+## [1.1.1] - 2025-11-29
+### Added
+- GITHUB RELEASE SOFTWARE UPDATE Functionality Added Improved API CALL
+
+
+
+## [1.1.2] - 2025-11-29
+### Added
+- Android Work Flow Improved & Github Actions Setup Done
