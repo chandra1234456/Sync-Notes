@@ -13,6 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_new_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SyncNote"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:windowSoftInputMode="adjustResize">
         <activity
             android:name=".SplashActivity"

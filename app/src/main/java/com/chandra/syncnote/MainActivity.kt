@@ -1,7 +1,6 @@
 package com.chandra.syncnote
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -38,6 +37,7 @@ import com.chandra.syncnote.navigation.Screen
 import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.ui.theme.SyncNoteTheme
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
                     confirmButton = {
                         TextButton(onClick = {
                             context.startActivity(
-                                Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl))
+                                Intent(Intent.ACTION_VIEW, update.downloadUrl.toUri())
                             )
                             updateAvailable = null
                         }) {
