@@ -36,7 +36,8 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = File("C:\\Users\\balachandra.d\\AndroidStudioProjects\\SyncNote\\sync_note.jks")//file(prop("C:Usersbalachandra.dAndroidStudioProjectssync_note.jks"))
+            storeFile = File("dummy.jks")
+            //storeFile = File("C:\\Users\\balachandra.d\\AndroidStudioProjects\\SyncNote\\sync_note.jks")//file(prop("C:Usersbalachandra.dAndroidStudioProjectssync_note.jks"))
             storePassword = prop("STORE_PASSWORD")
             keyAlias = prop("KEY_ALIAS")
             keyPassword = prop("KEY_PASSWORD")
