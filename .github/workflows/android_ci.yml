@@ -24,6 +24,9 @@ jobs:
           java-version: 17
           cache: 'gradle'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Grant execute permissions to gradlew
         run: chmod +x gradlew
 
@@ -46,6 +49,9 @@ jobs:
           java-version: 17
           cache: 'gradle'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Grant execute permissions to gradlew
         run: chmod +x gradlew
 
@@ -53,7 +59,7 @@ jobs:
       - name: Build Release APK and AAB
         run: ./gradlew clean assembleRelease bundleRelease
 
-      # Sign with GitHub Action
+      # Sign with GitHub Action (UPDATED VERSION)
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         with:
@@ -62,6 +68,7 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ALIAS_PASSWORD }}
+          buildToolsVersion: "34.0.0"  # ADD THIS LINE
 
       - name: Sign AAB
         uses: r0adkll/sign-android-release@v1
@@ -71,6 +78,7 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ALIAS_PASSWORD }}
+          buildToolsVersion: "34.0.0"  # ADD THIS LINE
 
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
