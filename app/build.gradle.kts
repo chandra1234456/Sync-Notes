@@ -1,3 +1,5 @@
+
+fun prop(key: String) = project.findProperty(key) as String
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -29,11 +31,20 @@ android {
             }
         }
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file(prop("STORE_FILE"))
+            storePassword = prop("STORE_PASSWORD")
+            keyAlias = prop("KEY_ALIAS")
+            keyPassword = prop("KEY_PASSWORD")
+        }
+    }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             isDebuggable = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
