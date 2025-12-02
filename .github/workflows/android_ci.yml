@@ -32,6 +32,35 @@ jobs:
             platform-tools
             platforms;android-33
 
+      # Ensure keystore exists BEFORE any gradle command (gradle reads STORE_FILE during configuration)
+      - name: Create or Decode Keystore into app/sync_note.jks
+        run: |
+          set -euo pipefail
+          mkdir -p app
+          # Use the repository's keystore secret SYNC_NOTE_KEYSTORE if provided (base64)
+          if [ -n "${{ secrets.SYNC_NOTE_KEYSTORE }}" ]; then
+            echo "Decoding SYNC_NOTE_KEYSTORE into app/sync_note.jks"
+            echo "${{ secrets.SYNC_NOTE_KEYSTORE }}" | base64 --decode > app/sync_note.jks
+            chmod 600 app/sync_note.jks
+            echo "Keystore created from SYNC_NOTE_KEYSTORE secret at app/sync_note.jks"
+          else
+            # No base64 keystore secret provided: generate a temporary keystore
+            # (matches gradle.properties: STORE_PASSWORD=android, KEY_PASSWORD=android, KEY_ALIAS=android)
+            echo "No SYNC_NOTE_KEYSTORE secret found. Generating temporary keystore app/sync_note.jks"
+            keytool -genkeypair \
+              -alias android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -keystore app/sync_note.jks \
+              -storepass android \
+              -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US"
+            chmod 600 app/sync_note.jks
+            echo "Generated keystore at app/sync_note.jks with alias=android"
+          fi
+          ls -la app | sed -n '1,200p'
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
@@ -53,7 +82,7 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Clean Project (Recommended for CI)
-        run: ./gradlew clean --no-daemon
+        run: ./gradlew clean --no-daemon --stacktrace --info
 
       - name: Build Debug APK (Assemble + Test) with diagnostics
         run: ./gradlew assembleDebug --stacktrace --info --no-daemon
@@ -65,39 +94,23 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           compression-level: 0
 
-      # Keystore: always attempt to create app/sync_note.jks if secret exists.
-      # NOTE: Removed 'if: ${{ secrets.KEYSTORE_BASE64 != '' }}' because workflow parsing
-      # cannot evaluate 'secrets' in an 'if' expression at that stage (caused the error).
-      - name: Download Keystore from Secret and Write to app/
-        run: |
-          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "No KEYSTORE_BASE64 secret provided; skipping keystore creation"
-          else
-            mkdir -p app
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/sync_note.jks
-            echo "Keystore written to app/sync_note.jks"
-            ls -la app | sed -n '1,200p'
-          fi
-
       - name: Build Release APK (with diagnostics)
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/app/sync_note.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ALIAS_PASSWORD }}
         run: |
-          # If keystore secrets are provided, ensure the file exists where Gradle expects it
-          if [ -n "${KEYSTORE_PASSWORD}" ]; then
+          set -euo pipefail
+          if [ -n "${KEYSTORE_PASSWORD:-}" ]; then
             if [ ! -f "${KEYSTORE_PATH}" ]; then
               echo "Keystore not found at ${KEYSTORE_PATH}"
-              echo "PWD: $PWD"
               ls -la
               exit 1
-            else
-              echo "Using keystore at ${KEYSTORE_PATH}"
             fi
+            echo "Using keystore at ${KEYSTORE_PATH}"
           else
-            echo "No keystore password provided; assuming release build is not signed with a repo keystore"
+            echo "No KEYSTORE_PASSWORD provided; proceeding (release may be unsigned or use local keystore)"
           fi
           ./gradlew assembleRelease --stacktrace --info --no-daemon
 
