@@ -34,22 +34,30 @@ android {
             }
         }
     }
-   /* signingConfigs {
-        create("release") {
-            storeFile = rootProject.file("sync_note.jks")
-            //storeFile = File("C:\\Users\\balachandra.d\\AndroidStudioProjects\\SyncNote\\sync_note.jks")//file(prop("C:Usersbalachandra.dAndroidStudioProjectssync_note.jks"))
-            storePassword = prop("STORE_PASSWORD")
-            keyAlias = prop("KEY_ALIAS")
-            keyPassword = prop("KEY_PASSWORD")
-        }
-    }*/
+   signingConfigs {
+       create("release") {
+           val keystorePath = project.findProperty("STORE_FILE") as String?
+               ?: throw GradleException("STORE_FILE not defined in gradle.properties")
+           val keystoreFile = file(keystorePath)
+
+           if (!keystoreFile.exists()) {
+               throw GradleException("Keystore file not found at: $keystoreFile")
+           }
+
+           storeFile = keystoreFile
+           storePassword = project.findProperty("STORE_PASSWORD") as String
+           keyAlias = project.findProperty("KEY_ALIAS") as String
+           keyPassword = project.findProperty("KEY_PASSWORD") as String
+
+           println("Keystore file path: $keystoreFile") // This will print during Gradle sync/build
+       }
+    }
 
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
             isDebuggable = false
-            //signingConfig = null
-            //signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
