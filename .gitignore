@@ -23,7 +23,7 @@ local.properties
 !gradle-wrapper.jar
 
 # Signing files
-*.jks
+#*.jks
 *.keystore
 **/debug.keystore
 
