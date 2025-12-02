@@ -1,32 +1,28 @@
 name: Android CICD Testing Build
+
 on:
   push:
-    branches: [ "master" ]     # Trigger CI when code is pushed to master
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]     # Trigger CI for pull requests to master
-
+    branches: ["master"]
 
 jobs:
   build:
     name: Android Build Pipeline
-    runs-on: ubuntu-latest     # GitHub runner with Android SDK tools preinstalled
+    runs-on: ubuntu-latest
 
     steps:
-
-
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
 
       - name: Setup JDK 17 for Android Narwhal
         uses: actions/setup-java@v4.0.0
         with:
-          java-version: '17'     # Required for AGP 8.x+ (Narwhal)
+          java-version: '17'
           distribution: 'adopt'
-
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
-
 
       - name: Setup Gradle Cache
         uses: actions/cache@v4
@@ -39,17 +35,36 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-
       - name: Clean Project (Recommended for CI)
         run: ./gradlew clean
 
-      - name: Build Project (Assemble + Test)
-        run: ./gradlew build
+      # ========================== Debug APK ==========================
+      - name: Build Debug APK (Assemble + Test)
+        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: AndroidCICD-Debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          # You can download the APK from GitHub Actions → Artifacts
-          compression-level: 0      # 👉 prevents GitHub from zipping the APK
+          compression-level: 0
+
+      # ========================== Release APK ==========================
+      - name: Download Keystore from Secret and Write to File
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > sync_note.jks
+
+      - name: Build Release APK
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/sync_note.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AndroidCICD-Release.apk
+          path: app/build/outputs/apk/release/app-release.apk
+          compression-level: 0
