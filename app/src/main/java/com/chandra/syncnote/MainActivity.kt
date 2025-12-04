@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onClick = {
                                     isChecked = true
-                                          //navController.navigate(Screen.CreateNote.route)
+                                  //navController.navigate(Screen.CreateNote.route)
                                 },
                                 expanded = true
                             )

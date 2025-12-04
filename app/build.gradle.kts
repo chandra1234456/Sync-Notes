@@ -17,8 +17,8 @@ android {
         applicationId = "com.chandra.syncnote"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.1.3"
+        versionCode = 7
+        versionName = "1.1.4"
         //v1.0.0 - Major release (breaking changes)
         //v1.1.0 - Minor release (new features)
         //v1.1.1 - Patch release (bug fixes)
@@ -35,7 +35,7 @@ android {
         }
     }
    signingConfigs {
-       create("release") {
+       /*create("release") {
            val keystorePath = project.findProperty("STORE_FILE") as String?
                ?: throw GradleException("STORE_FILE not defined in gradle.properties")
            val keystoreFile = file(keystorePath)
@@ -50,19 +50,27 @@ android {
            keyPassword = project.findProperty("KEY_PASSWORD") as String
 
            println("Keystore file path: $keystoreFile") // This will print during Gradle sync/build
-       }
+       }*/
     }
 
     buildTypes {
-        getByName("release") {
+        release {
             isMinifyEnabled = false
             isDebuggable = false
-            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+       /* getByName("release") {
+            isMinifyEnabled = false
+            isDebuggable = false
+            //signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }*/
         debug {
             isMinifyEnabled = false
             proguardFiles(
