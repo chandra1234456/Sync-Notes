@@ -1,18 +1,20 @@
-name: Android CICD Testing Build
-
+# Create a Release and upload the Release APK to the Release's Assets
+# Trigger: push tags like v1.2.3 (push a tag to fire this workflow)
+# Uses GITHUB_TOKEN (permissions: contents: write) to create release and upload asset
 on:
   push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    name: Android Build Pipeline
+  build-and-publish:
+    name: Build release APK and publish to GitHub Release
     runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m"
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,21 +34,17 @@ jobs:
             platform-tools
             platforms;android-33
 
-      # Ensure keystore exists BEFORE any gradle command (gradle reads STORE_FILE during configuration)
-      - name: Create or Decode Keystore into app/sync_note.jks
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup keystore (decode or generate)
         run: |
           set -euo pipefail
           mkdir -p app
-          # Use the repository's keystore secret SYNC_NOTE_KEYSTORE if provided (base64)
           if [ -n "${{ secrets.SYNC_NOTE_KEYSTORE }}" ]; then
-            echo "Decoding SYNC_NOTE_KEYSTORE into app/sync_note.jks"
             echo "${{ secrets.SYNC_NOTE_KEYSTORE }}" | base64 --decode > app/sync_note.jks
             chmod 600 app/sync_note.jks
-            echo "Keystore created from SYNC_NOTE_KEYSTORE secret at app/sync_note.jks"
           else
-            # No base64 keystore secret provided: generate a temporary keystore
-            # (matches gradle.properties: STORE_PASSWORD=android, KEY_PASSWORD=android, KEY_ALIAS=android)
-            echo "No SYNC_NOTE_KEYSTORE secret found. Generating temporary keystore app/sync_note.jks"
             keytool -genkeypair \
               -alias android \
               -keyalg RSA \
@@ -57,44 +55,9 @@ jobs:
               -keypass android \
               -dname "CN=Android Debug,O=Android,C=US"
             chmod 600 app/sync_note.jks
-            echo "Generated keystore at app/sync_note.jks with alias=android"
           fi
-          ls -la app | sed -n '1,200p'
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Print environment (debug)
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
-          ./gradlew -version
-
-      - name: Setup Gradle Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.android/build-cache
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Clean Project (Recommended for CI)
-        run: ./gradlew clean --no-daemon --stacktrace --info
-
-      - name: Build Debug APK (Assemble + Test) with diagnostics
-        run: ./gradlew assembleDebug --stacktrace --info --no-daemon
-
-      - name: Upload Debug APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: AndroidCICD-Debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          compression-level: 0
-
-      - name: Build Release APK (with diagnostics)
+      - name: Build Release APK
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/app/sync_note.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -102,31 +65,32 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ALIAS_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -n "${KEYSTORE_PASSWORD:-}" ]; then
-            if [ ! -f "${KEYSTORE_PATH}" ]; then
-              echo "Keystore not found at ${KEYSTORE_PATH}"
-              ls -la
-              exit 1
-            fi
-            echo "Using keystore at ${KEYSTORE_PATH}"
-          else
-            echo "No KEYSTORE_PASSWORD provided; proceeding (release may be unsigned or use local keystore)"
+          # optional check for keystore presence
+          if [ -n "${KEYSTORE_PASSWORD:-}" ] && [ ! -f "${KEYSTORE_PATH}" ]; then
+            echo "Keystore not found at ${KEYSTORE_PATH}"
+            ls -la
+            exit 1
           fi
           ./gradlew assembleRelease --stacktrace --info --no-daemon
 
-      - name: Upload Release APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: AndroidCICD-Release.apk
-          path: app/build/outputs/apk/release/app-release.apk
-          compression-level: 0
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: "Automated release for ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
 
-      - name: Upload Gradle Daemon Logs (diagnostics)
-        if: failure()
-        uses: actions/upload-artifact@v4
+      - name: Upload Release APK to Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: gradle-logs
-          path: |
-            ~/.gradle/daemon
-            ~/.gradle/caches
-          retention-days: 3
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/release/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive

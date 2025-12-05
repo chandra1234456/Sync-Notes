@@ -26,3 +26,7 @@
 ## [1.1.2] - 2025-11-29
 ### Added
 - Android Work Flow Improved & Github Actions Setup Done
+
+## [1.1.5] - 2025-12-05
+### Added
+- Android Work Flow Improved & Github Actions Setup Done & Added Apk in Assets while pushing while Version Tags
