@@ -1,6 +1,8 @@
 # Create a Release and upload the Release APK to the Release's Assets
 # Trigger: push tags like v1.2.3 (push a tag to fire this workflow)
 # Uses GITHUB_TOKEN (permissions: contents: write) to create release and upload asset
+name: Build & Release APK
+
 on:
   push:
     tags:
@@ -11,67 +13,51 @@ permissions:
 
 jobs:
   build-and-publish:
-    name: Build release APK and publish to GitHub Release
     runs-on: ubuntu-latest
-    env:
-      GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048m"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17 (Temurin)
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
         with:
           api-level: 33
           build-tools: 33.0.2
-          components: |
-            platform-tools
-            platforms;android-33
 
       - name: Make gradlew executable
-        run: chmod +x ./gradlew
+        run: chmod +x gradlew
 
-      - name: Setup keystore (decode or generate)
+      - name: Decode keystore
         run: |
-          set -euo pipefail
-          mkdir -p app
-          if [ -n "${{ secrets.SYNC_NOTE_KEYSTORE }}" ]; then
-            echo "${{ secrets.SYNC_NOTE_KEYSTORE }}" | base64 --decode > app/sync_note.jks
-            chmod 600 app/sync_note.jks
-          else
-            keytool -genkeypair \
-              -alias android \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -keystore app/sync_note.jks \
-              -storepass android \
-              -keypass android \
-              -dname "CN=Android Debug,O=Android,C=US"
-            chmod 600 app/sync_note.jks
-          fi
+          echo "${{ secrets.SYNC_NOTE_KEYSTORE }}" | base64 --decode > app/release-key.jks
 
       - name: Build Release APK
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/app/sync_note.jks
+          KEYSTORE_PATH: ${{ github.workspace }}/app/release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ALIAS }}
           KEY_PASSWORD: ${{ secrets.ALIAS_PASSWORD }}
+        run: ./gradlew assembleRelease --stacktrace --no-daemon
+
+      # 🔍 NEW: Find the actual APK path
+      - name: Locate built APK
+        id: apk
         run: |
-          set -euo pipefail
-          # optional check for keystore presence
-          if [ -n "${KEYSTORE_PASSWORD:-}" ] && [ ! -f "${KEYSTORE_PATH}" ]; then
-            echo "Keystore not found at ${KEYSTORE_PATH}"
-            ls -la
+          echo "Searching for APK..."
+          APK_PATH=$(find app/build/outputs -type f -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "No APK found!"
             exit 1
           fi
-          ./gradlew assembleRelease --stacktrace --info --no-daemon
+          echo "Found APK at: $APK_PATH"
+          echo "path=$APK_PATH" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release
@@ -81,16 +67,15 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           release_name: ${{ github.ref_name }}
-          body: "Automated release for ${{ github.ref_name }}"
           draft: false
           prerelease: false
 
-      - name: Upload Release APK to Release Assets
+      - name: Upload APK to Release Assets
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app/build/outputs/apk/release/app-release.apk
+          asset_path: ${{ steps.apk.outputs.path }}
           asset_name: app-release.apk
           asset_content_type: application/vnd.android.package-archive
