@@ -33,10 +33,10 @@ local.properties
 
 # Android generated
 captures/
-output.json
+#output.json
 #*.apk
-*.ap_
-*.aab
+#*.ap_
+#*.aab
 
 # Crashlytics / Firebase
 crashlytics.properties
