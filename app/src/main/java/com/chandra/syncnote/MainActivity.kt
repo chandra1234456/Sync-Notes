@@ -1,6 +1,6 @@
 package com.chandra.syncnote
 
-import android.content.Intent
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -9,13 +9,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,7 +35,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.chandra.syncnote.github.GitHubUpdateChecker
@@ -37,7 +49,8 @@ import com.chandra.syncnote.navigation.Screen
 import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.ui.theme.SyncNoteTheme
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.core.net.toUri
+import com.chandra.syncnote.util.dialog.startApkDownload
+import com.chandra.syncnote.util.dialog.startApkDownloadAndInstall
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -131,35 +144,87 @@ class MainActivity : ComponentActivity() {
 
             // Show Update Available Dialog
             updateAvailable?.let { update ->
-                AlertDialog(
-                    onDismissRequest = { updateAvailable = null },
-                    title = { Text("New Version Available!") },
-                    text = {
-                        Text(
-                            "Current Version: ${update.currentVersion}\n" +
-                                    "Latest Version: ${update.latestVersion}\n\n" +
-                                    "${update.releaseNotes.take(300)}..."
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, update.downloadUrl.toUri())
-                            )
-                            updateAvailable = null
-                        }) {
-                            Text("Update")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { updateAvailable = null }) {
-                            Text("Later")
-                        }
-                    }
+                UpdateDialog(
+                    update = update,
+                    context = LocalContext.current,
+                    onDismiss = { updateAvailable = null }
                 )
             }
         }
 }
+
+@Composable
+fun UpdateDialog(
+    update: GitHubUpdateChecker.UpdateResult.UpdateAvailable,          // Your data class with currentVersion, latestVersion, releaseNotes, downloadUrl
+    onDismiss: () -> Unit,
+    context: Context
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            // Replace with your own icon resource
+            Icon(
+                imageVector = Icons.Default.SystemUpdate,
+                contentDescription = "Update Icon",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(48.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "New Version Available!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(modifier = Modifier.padding(top = 8.dp)) {
+                Text(
+                    text = "Current Version: ${update.currentVersion}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Latest Version: ${update.latestVersion}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = update.releaseNotes.take(300) + if (update.releaseNotes.length > 300) "..." else "",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    lineHeight = 20.sp
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+               // startApkDownload(context, update.downloadUrl)
+                startApkDownloadAndInstall(context, update.downloadUrl)
+                onDismiss()
+            }) {
+                Text(
+                    text = "Update",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Later",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
+                )
+            }
+        },
+        shape = MaterialTheme.shapes.medium
+    )
+}
+
 
 
 
