@@ -17,8 +17,8 @@ android {
         applicationId = "com.chandra.syncnote"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.1.7"
+        versionCode = 11
+        versionName = "1.1.8"
         //v1.0.0 - Major release (breaking changes)
         //v1.1.0 - Minor release (new features)
         //v1.1.1 - Patch release (bug fixes)
@@ -35,42 +35,43 @@ android {
         }
     }
    signingConfigs {
-       /*create("release") {
-           val keystorePath = project.findProperty("STORE_FILE") as String?
+       create("release") {
+           /*val keystorePath = project.findProperty("STORE_FILE") as String?
                ?: throw GradleException("STORE_FILE not defined in gradle.properties")
            val keystoreFile = file(keystorePath)
 
            if (!keystoreFile.exists()) {
                throw GradleException("Keystore file not found at: $keystoreFile")
-           }
+           }*/
 
-           storeFile = keystoreFile
+           //storeFile = keystoreFile
+           storeFile = file("C:/Users/balachandra.d/AndroidStudioProjects/sync_note.jks")
            storePassword = project.findProperty("STORE_PASSWORD") as String
            keyAlias = project.findProperty("KEY_ALIAS") as String
            keyPassword = project.findProperty("KEY_PASSWORD") as String
 
-           println("Keystore file path: $keystoreFile") // This will print during Gradle sync/build
-       }*/
+           println("Keystore file path: ") // This will print during Gradle sync/build
+       }
     }
 
     buildTypes {
-        release {
+        /*release {
             isMinifyEnabled = false
             isDebuggable = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-       /* getByName("release") {
-            isMinifyEnabled = false
-            isDebuggable = false
-            //signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }*/
+        getByName("release") {
+            isMinifyEnabled = false
+            isDebuggable = false
+            signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         debug {
             isMinifyEnabled = false
             proguardFiles(
@@ -162,7 +163,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("com.google.accompanist:accompanist-placeholder-material3:0.32.0") //Shimmer + Animation
+    implementation("com.google.accompanist:accompanist-placeholder-material3:0.36.0") //Shimmer + Animation
 
 }
 

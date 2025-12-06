@@ -1,6 +1,5 @@
 package com.chandra.syncnote
 
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -9,23 +8,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,9 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.chandra.syncnote.github.GitHubUpdateChecker
@@ -47,7 +34,6 @@ import com.chandra.syncnote.navigation.AppNavHost
 import com.chandra.syncnote.navigation.Screen
 import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.ui.theme.SyncNoteTheme
-import com.chandra.syncnote.util.dialog.startApkDownloadAndInstall
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -143,7 +129,6 @@ class MainActivity : ComponentActivity() {
             // Show Update Available Dialog
             updateAvailable?.let { update ->
                 UpdateScreen(update, context) {
-                    onDismiss()
                     updateAvailable = null
                 }
             }
