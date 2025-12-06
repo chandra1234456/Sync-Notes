@@ -35,7 +35,7 @@ android {
         }
     }
    signingConfigs {
-       create("release") {
+      /* create("release") {
            /*val keystorePath = project.findProperty("STORE_FILE") as String?
                ?: throw GradleException("STORE_FILE not defined in gradle.properties")
            val keystoreFile = file(keystorePath)
@@ -51,19 +51,19 @@ android {
            keyPassword = project.findProperty("KEY_PASSWORD") as String
 
            println("Keystore file path: ") // This will print during Gradle sync/build
-       }
+       }*/
     }
 
     buildTypes {
-        /*release {
+        release {
             isMinifyEnabled = false
             isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }*/
-        getByName("release") {
+        }
+        /*getByName("release") {
             isMinifyEnabled = false
             isDebuggable = false
             signingConfig = signingConfigs.getByName("release")
@@ -71,7 +71,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
+        }*/
         debug {
             isMinifyEnabled = false
             proguardFiles(
