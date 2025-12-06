@@ -162,6 +162,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("com.google.accompanist:accompanist-placeholder-material3:0.32.0") //Shimmer + Animation
 
 }
 
