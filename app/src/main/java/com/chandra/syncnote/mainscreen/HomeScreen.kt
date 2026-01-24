@@ -1,9 +1,11 @@
 package com.chandra.syncnote.mainscreen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -49,17 +52,27 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +83,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.chandra.syncnote.domain.model.Note
 import com.chandra.syncnote.domain.model.OrderOption
 import com.chandra.syncnote.domain.model.SortOption
 import com.chandra.syncnote.ui.theme.AppBarTypography
@@ -78,61 +93,157 @@ import com.chandra.syncnote.util.getAppVersion
 import com.chandra.syncnote.util.toastMessage
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     modifier: Modifier = Modifier,
     viewModel: NoteViewModel = hiltViewModel()
 ) {
-    val notes by viewModel.filteredNotes.collectAsState()
-    val search by viewModel.searchText.collectAsState()
+    val notes by viewModel.filteredNotes.collectAsStateWithLifecycle()
+    val search by viewModel.searchText.collectAsStateWithLifecycle()
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(6.dp)
-    ) {
-        item {
-            OutlinedTextField(
-                value = search,
-                onValueChange = { viewModel.searchText.value = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .height(56.dp),
-                placeholder = { Text("Search notes...") },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null)
-                },
-                trailingIcon = {
-                    if (search.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.searchText.value = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear")
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Hold dismiss states per note id
+    val dismissStates = remember { mutableStateMapOf<Int, SwipeToDismissBoxState>() }
+
+    Scaffold(
+        modifier = modifier,
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 30.dp)
+            )
+        }
+    ) { padding ->
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(6.dp)
+        ) {
+
+            // Search Field
+            item {
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = { viewModel.searchText.value = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .height(56.dp),
+                    placeholder = { Text("Search notes…") },
+                    leadingIcon = { Icon(Icons.Default.Search, null) },
+                    trailingIcon = {
+                        if (search.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.searchText.value = "" }) {
+                                Icon(Icons.Default.Close, "Clear search")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+
+            // Notes List
+            items(
+                items = notes,
+                key = { it.id ?: 0 }
+            ) { note ->
+
+                val dismissState = dismissStates.getOrPut(note.id ?: 0) {
+                    rememberSwipeToDismissBoxState(initialValue = SwipeToDismissBoxValue.Settled)
+                }
+
+                SwipeToDeleteNote(
+                    note = note,
+                    dismissState = dismissState,
+                    onDelete = { viewModel.deleteNote(note) },
+                    onDismiss = {
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Note deleted",
+                                actionLabel = "Undo",
+                                duration = SnackbarDuration.Short
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.restoreNote(note)
+                            }
+                            dismissState.reset()
                         }
                     }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        items(notes) { note ->
-            SyncNoteItem(
-                note = note,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        // Handle note click
-                    }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+                )
+                Spacer(Modifier.height(12.dp))
+            }
         }
     }
 }
 
+@Composable
+fun SwipeToDeleteNote(
+    note: Note,
+    dismissState: SwipeToDismissBoxState,
+    onDelete: () -> Unit,
+    onDismiss: (SwipeToDismissBoxValue) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val onDeleteUpdated by rememberUpdatedState(onDelete)
 
-@RequiresApi(Build.VERSION_CODES.O)
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false, // swipe only right to left
+        backgroundContent = {
+            DeleteBackground(dismissState)
+        },
+        content = {
+            SyncNoteItem(note = note)
+        },
+        onDismiss = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                scope.launch {
+                    try {
+                        onDeleteUpdated()
+                        onDismiss(value)
+                    } catch (e: Exception) {
+                        Log.e("SwipeDelete", "Delete failed", e)
+                    }
+                }
+                true
+            } else false
+        }
+    )
+}
+
+@Composable
+fun DeleteBackground(
+    dismissState: SwipeToDismissBoxState
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart)
+            MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
+        label = "delete_bg"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .padding(end = 20.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = "Delete note",
+            tint = Color.Red
+        )
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteAppScaffold(
@@ -185,7 +296,8 @@ fun NoteAppScaffold(
                     scrollBehavior = scrollBehavior
                 )
                 if (showSheet) {
-                    BottomSheet {
+                    val viewModel: NoteViewModel = hiltViewModel()
+                    BottomSheet(viewModel = viewModel) {
                         showSheet = false
                     }
                 }
@@ -222,9 +334,10 @@ fun AppDrawer() {
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(2.dp)
-                    .clickable{ onMode = if (onMode == "Dark") "Light" else "Dark"},
+                    .clickable { onMode = if (onMode == "Dark") "Light" else "Dark" },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -277,26 +390,26 @@ fun AppDrawer() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheet(
+    viewModel: NoteViewModel,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
+    val filter by viewModel.notesFilter.collectAsStateWithLifecycle()
 
-    var selectedSort by remember { mutableStateOf(SortOption.TITLE) }
-    var selectedOrder by remember { mutableStateOf(OrderOption.ASCENDING) }
+    var selectedSort by remember { mutableStateOf(filter.sortBy) }
+    var selectedOrder by remember { mutableStateOf(filter.orderBy) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             // SORT SECTION
             IconWithText(Icons.AutoMirrored.Filled.Sort, "Sort By")
 
@@ -304,28 +417,17 @@ fun BottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 4.dp)
             ) {
-                item {
+                val sortOptions = listOf(
+                    SortOption.TITLE to Icons.Default.Title,
+                    SortOption.CREATED_DATE to Icons.Default.CalendarMonth,
+                    SortOption.MODIFIED_DATE to Icons.Default.Refresh
+                )
+                items(sortOptions) { (option, icon) ->
                     DefaultCustomChip(
-                        icon = Icons.Default.Title,
-                        text = "Title",
-                        selected = selectedSort == SortOption.TITLE,
-                        onClick = { selectedSort = SortOption.TITLE }
-                    )
-                }
-                item {
-                    DefaultCustomChip(
-                        icon = Icons.Default.CalendarMonth,
-                        text = "Created Date",
-                        selected = selectedSort == SortOption.CREATED_DATE,
-                        onClick = { selectedSort = SortOption.CREATED_DATE }
-                    )
-                }
-                item {
-                    DefaultCustomChip(
-                        icon = Icons.Default.Refresh,
-                        text = "Modified Date",
-                        selected = selectedSort == SortOption.MODIFIED_DATE,
-                        onClick = { selectedSort = SortOption.MODIFIED_DATE }
+                        icon = icon,
+                        text = option.name.replace("_", " ").capitalize(),
+                        selected = selectedSort == option,
+                        onClick = { selectedSort = option }
                     )
                 }
             }
@@ -337,39 +439,42 @@ fun BottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 4.dp)
             ) {
-                item {
+                val orderOptions = listOf(
+                    OrderOption.ASCENDING to Icons.Default.ArrowUpward,
+                    OrderOption.DESCENDING to Icons.Default.ArrowDownward
+                )
+                items(orderOptions) { (option, icon) ->
                     DefaultCustomChip(
-                        icon = Icons.Default.ArrowUpward,
-                        text = "Ascending",
-                        selected = selectedOrder == OrderOption.ASCENDING,
-                        onClick = { selectedOrder = OrderOption.ASCENDING }
-                    )
-                }
-                item {
-                    DefaultCustomChip(
-                        icon = Icons.Default.ArrowDownward,
-                        text = "Descending",
-                        selected = selectedOrder == OrderOption.DESCENDING,
-                        onClick = { selectedOrder = OrderOption.DESCENDING }
+                        icon = icon,
+                        text = option.name.capitalize(),
+                        selected = selectedOrder == option,
+                        onClick = { selectedOrder = option }
                     )
                 }
             }
+
             // BUTTONS
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OutlinedButton(modifier = Modifier.fillMaxWidth().weight(0.5f),onClick = onDismiss) {
-                    Text("Cancel")
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Button(modifier = Modifier.fillMaxWidth().weight(0.5f),onClick = onDismiss) {
-                    Text("Confirm")
-                }
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onDismiss
+                ) { Text("Cancel") }
+
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        viewModel.updateFilter(selectedSort, selectedOrder)
+                        onDismiss()
+                    }
+                ) { Text("Confirm") }
             }
         }
     }
 }
+
 
 
 

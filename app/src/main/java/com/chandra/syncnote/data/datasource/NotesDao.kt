@@ -2,6 +2,7 @@ package com.chandra.syncnote.data.datasource
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.DeleteTable
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -21,4 +22,7 @@ interface NotesDao {
 
     @Delete
     suspend fun deleteNote(note: Note)
+
+    @Query("DELETE FROM Note")
+    suspend fun deleteAllNote()
 }

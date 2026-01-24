@@ -8,7 +8,6 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.chandra.syncnote.github.GitHubUpdateChecker
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -23,7 +22,7 @@ class SplashActivity : ComponentActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-        }, 4000) // 4000ms = 4 seconds
+        }, 3000) // 4000ms = 4 seconds
     }
 }
 

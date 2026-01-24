@@ -15,5 +15,6 @@ class NoteRepositoryImpl(
     override suspend fun deleteNote(note: Note) = notesDao.deleteNote(note)
 
     override suspend fun getNoteById(id: Int): Note? = notesDao.getNoteById(id)
+    override suspend fun deleteAllNote()= notesDao.deleteAllNote()
 
 }

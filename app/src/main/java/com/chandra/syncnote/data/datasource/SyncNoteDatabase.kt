@@ -7,7 +7,7 @@ import com.chandra.syncnote.domain.model.Note
 
 @Database(
     entities = [Note::class],
-    version = 1
+    version = 2
 )
 abstract class SyncNoteDatabase: RoomDatabase() {
     abstract val notesDao : NotesDao

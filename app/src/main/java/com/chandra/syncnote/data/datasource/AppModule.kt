@@ -1,9 +1,12 @@
 package com.chandra.syncnote.data.datasource
+
+
 import android.app.Application
 import androidx.room.Room
 import com.chandra.syncnote.data.repository.NoteRepositoryImpl
 import com.chandra.syncnote.domain.repository.NoteRepository
 import com.chandra.syncnote.domain.usecases.AddNoteUseCase
+import com.chandra.syncnote.domain.usecases.DeleteAllNoteUseCase
 import com.chandra.syncnote.domain.usecases.DeleteNoteUseCase
 import com.chandra.syncnote.domain.usecases.GetNoteByIdUseCase
 import com.chandra.syncnote.domain.usecases.GetNotesUseCase
@@ -43,7 +46,8 @@ object AppModule {
             addNoteUseCase = AddNoteUseCase(repository),
             deleteNoteUseCase = DeleteNoteUseCase(repository),
             getNoteByIdUseCase = GetNoteByIdUseCase(repository),
-            getNoteUseCase = GetNotesUseCase(repository)
+            getNoteUseCase = GetNotesUseCase(repository),
+            deleteAllNotesUseCase = DeleteAllNoteUseCase(repository)
         )
 }
 

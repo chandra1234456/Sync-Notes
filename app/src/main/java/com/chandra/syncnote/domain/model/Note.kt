@@ -8,6 +8,8 @@ data class Note(
     val title: String,
     val content: String,
     val timeStamp: Long,
+    val isEdited : Boolean = false,
+    val modifiedDate : String,
     @PrimaryKey(autoGenerate = true) val id: Int? = null
 )
 

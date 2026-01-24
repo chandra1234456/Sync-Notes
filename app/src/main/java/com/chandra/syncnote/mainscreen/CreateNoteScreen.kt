@@ -143,7 +143,9 @@ fun CreateNoteScaffold(
                                 Note(
                                     title = textTitle.text,
                                     content = textDescription.text,
-                                    timeStamp = System.currentTimeMillis()
+                                    timeStamp = System.currentTimeMillis(),
+                                    modifiedDate = "",
+                                    isEdited = false
                                 )
                             )
                             Toast.makeText(context, "Note Saved Successfully", Toast.LENGTH_SHORT)

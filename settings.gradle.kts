@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SyncNote"
 include(":app")
- 
+include(":benchmark")
