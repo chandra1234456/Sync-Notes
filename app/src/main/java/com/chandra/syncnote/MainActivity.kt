@@ -66,13 +66,11 @@ class MainActivity : ComponentActivity() {
                                     Text(
                                         "Add Note",
                                         style = AppBarTypography.labelLarge,
-                                        color = Color.Black
                                     )
                                 },
                                 icon = {
                                     Icon(
-                                        Icons.Rounded.Add,
-                                        tint = Color.Black, contentDescription = "Add Note"
+                                        Icons.Rounded.Add, contentDescription = "Add Note"
                                     )
                                 },
                                 onClick = {

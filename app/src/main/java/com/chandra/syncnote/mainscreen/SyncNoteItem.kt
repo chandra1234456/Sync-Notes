@@ -1,7 +1,5 @@
 package com.chandra.syncnote.mainscreen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,14 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,17 +24,17 @@ import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.util.getDateTimeZone
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SyncNoteItem(
-    note: Note,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
+    note: Note,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
 ) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
+            .clickable(enabled = enabled) { onClick() }
             .padding(4.dp),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 2.dp
@@ -49,7 +44,6 @@ fun SyncNoteItem(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-
             // Title
             Text(
                 text = note.title,
@@ -69,15 +63,34 @@ fun SyncNoteItem(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = getDateTimeZone(note.timeStamp),
-                style = AppBarTypography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                overflow = TextOverflow.Clip
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp) // space between timestamp and "edited"
+            ) {
+                // Always show the main timestamp
+                Text(
+                    text = if (note.isEdited) getDateTimeZone(note.modifiedDate?:12344) else getDateTimeZone(note.timeStamp),
+                    style = AppBarTypography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    overflow = TextOverflow.Clip
+                )
+
+                // Only show "edited" if note was edited
+                if (note.isEdited) {
+                    Text(
+                        text = "edited",
+                        style = AppBarTypography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Clip
+                    )
+                }
+            }
+
+
         }
     }
 }
+
 
 
 @Preview
@@ -138,13 +151,21 @@ fun SyncNoteItemNew(
                         overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+                    Row{
+                        Text(
+                            text = "edited",
+                            style = AppBarTypography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            overflow = TextOverflow.Clip
+                        )
+                        Text(
+                            text = "123456789",
+                            style = AppBarTypography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            overflow = TextOverflow.Clip
+                        )
+                    }
 
-                    Text(
-                        text = "123456789",
-                        style = AppBarTypography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        overflow = TextOverflow.Clip
-                    )
                 }
             }
 

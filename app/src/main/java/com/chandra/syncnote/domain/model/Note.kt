@@ -5,12 +5,14 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Note(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val title: String,
     val content: String,
     val timeStamp: Long,
-    val isEdited : Boolean = false,
-    val modifiedDate : String,
-    @PrimaryKey(autoGenerate = true) val id: Int? = null
+    val modifiedDate: Long? = null,
+    val isEdited: Boolean = false
 )
+
 
 class InvalidNoteException(message: String) : Exception(message)

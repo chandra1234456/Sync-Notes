@@ -108,15 +108,13 @@ fun CreateNoteScaffold(
     var errorDescription by remember { mutableStateOf("") }
 
     ModalNavigationDrawer(drawerState = drawerState, drawerContent = { AppDrawer() }) {
-
         Scaffold(
             floatingActionButton = {
                 if (currentRoute == Screen.CreateNote.route) {
                     ExtendedFloatingActionButton(
-                        text = { Text("Save Note") },
+                        text = { Text("Save Note",style = AppBarTypography.labelLarge) },
                         icon = { Icon(Icons.Rounded.Check, contentDescription = "Save Note") },
                         onClick = {
-
                             // VALIDATION OPTIONAL
                             if (textTitle.text.isBlank()) {
                                 showErrorDialog = true
@@ -144,7 +142,7 @@ fun CreateNoteScaffold(
                                     title = textTitle.text,
                                     content = textDescription.text,
                                     timeStamp = System.currentTimeMillis(),
-                                    modifiedDate = "",
+                                    modifiedDate = null,
                                     isEdited = false
                                 )
                             )
@@ -162,7 +160,6 @@ fun CreateNoteScaffold(
                         Text(
                             "Create New Note",
                             style = AppBarTypography.titleLarge,
-                            color = Color.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -174,11 +171,6 @@ fun CreateNoteScaffold(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Menu")
                         }
                     },
-                    /*actions = {
-                        IconButton(onClick = { context.toastMessage("Sort") }) {
-                            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
-                        }
-                    },*/
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -211,4 +203,3 @@ fun CreateNoteScaffold(
         }
     }
 }
-

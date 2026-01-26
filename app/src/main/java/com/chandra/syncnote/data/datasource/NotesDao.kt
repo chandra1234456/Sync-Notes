@@ -2,10 +2,10 @@ package com.chandra.syncnote.data.datasource
 
 import androidx.room.Dao
 import androidx.room.Delete
-import androidx.room.DeleteTable
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.chandra.syncnote.domain.model.Note
 import kotlinx.coroutines.flow.Flow
 
@@ -25,4 +25,7 @@ interface NotesDao {
 
     @Query("DELETE FROM Note")
     suspend fun deleteAllNote()
+
+    @Update
+    suspend fun updateNote(note: Note)
 }

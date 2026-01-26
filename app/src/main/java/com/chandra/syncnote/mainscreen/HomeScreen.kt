@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.BottomSheetDefaults
@@ -66,7 +67,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -88,16 +88,19 @@ import androidx.navigation.NavHostController
 import com.chandra.syncnote.domain.model.Note
 import com.chandra.syncnote.domain.model.OrderOption
 import com.chandra.syncnote.domain.model.SortOption
+import com.chandra.syncnote.navigation.Screen
 import com.chandra.syncnote.ui.theme.AppBarTypography
 import com.chandra.syncnote.util.getAppVersion
 import com.chandra.syncnote.util.toastMessage
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     modifier: Modifier = Modifier,
-    viewModel: NoteViewModel = hiltViewModel()
+    viewModel: NoteViewModel = hiltViewModel(),
+    navController: NavHostController
 ) {
     val notes by viewModel.filteredNotes.collectAsStateWithLifecycle()
     val search by viewModel.searchText.collectAsStateWithLifecycle()
@@ -117,14 +120,12 @@ fun HomeContent(
             )
         }
     ) { padding ->
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(6.dp)
         ) {
-
             // Search Field
             item {
                 OutlinedTextField(
@@ -148,14 +149,12 @@ fun HomeContent(
                 )
                 Spacer(Modifier.height(12.dp))
             }
-
             // Notes List
             items(
                 items = notes,
-                key = { it.id ?: 0 }
+                key = { it.id }
             ) { note ->
-
-                val dismissState = dismissStates.getOrPut(note.id ?: 0) {
+                val dismissState = dismissStates.getOrPut(note.id) {
                     rememberSwipeToDismissBoxState(initialValue = SwipeToDismissBoxValue.Settled)
                 }
 
@@ -163,6 +162,11 @@ fun HomeContent(
                     note = note,
                     dismissState = dismissState,
                     onDelete = { viewModel.deleteNote(note) },
+                    onClick = {
+                        navController.navigate(
+                            Screen.EditNote.createRoute(note.id)
+                        )
+                    },
                     onDismiss = {
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
@@ -188,6 +192,7 @@ fun SwipeToDeleteNote(
     note: Note,
     dismissState: SwipeToDismissBoxState,
     onDelete: () -> Unit,
+    onClick: () -> Unit,
     onDismiss: (SwipeToDismissBoxValue) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -200,7 +205,11 @@ fun SwipeToDeleteNote(
             DeleteBackground(dismissState)
         },
         content = {
-            SyncNoteItem(note = note)
+            SyncNoteItem(
+                note = note,
+                enabled = dismissState.currentValue == SwipeToDismissBoxValue.Settled,
+                onClick = onClick
+            )
         },
         onDismiss = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -267,7 +276,6 @@ fun NoteAppScaffold(
                         Text(
                             "Sync Note",
                             style = AppBarTypography.titleLarge,
-                            color = Color.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -286,7 +294,7 @@ fun NoteAppScaffold(
                         IconButton(onClick = {
                             showSheet = true
                         }) {
-                            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
+                            Icon(Icons.Filled.Sort, contentDescription = "Sort")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -304,7 +312,7 @@ fun NoteAppScaffold(
             }
         ) { innerPadding ->
             // Content goes here, respecting Scaffold padding
-            HomeContent(Modifier.padding(innerPadding))
+            HomeContent(navController = navController, modifier = Modifier.padding(innerPadding))
         }
     }
 }
@@ -346,7 +354,6 @@ fun AppDrawer() {
                     imageVector = Icons.Default.Bedtime,
                     contentDescription = "Theme Icon",
                     modifier = Modifier.size(28.dp),
-                    tint = Color.Black
                 )
                 Spacer(Modifier.width(16.dp))
                 // Texts
@@ -425,7 +432,7 @@ fun BottomSheet(
                 items(sortOptions) { (option, icon) ->
                     DefaultCustomChip(
                         icon = icon,
-                        text = option.name.replace("_", " ").capitalize(),
+                        text = option.name.replace("_", " ").capitalize(Locale.ROOT),
                         selected = selectedSort == option,
                         onClick = { selectedSort = option }
                     )
@@ -446,7 +453,7 @@ fun BottomSheet(
                 items(orderOptions) { (option, icon) ->
                     DefaultCustomChip(
                         icon = icon,
-                        text = option.name.capitalize(),
+                        text = option.name.capitalize(Locale.ROOT),
                         selected = selectedOrder == option,
                         onClick = { selectedOrder = option }
                     )

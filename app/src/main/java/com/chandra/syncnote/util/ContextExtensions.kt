@@ -31,7 +31,6 @@ fun Context.getAppVersion(): Pair<String, Long> {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun getDateTimeZone(timeStamp: Long): String {
     return Instant.ofEpochMilli(timeStamp)
         .atZone(ZoneId.systemDefault())

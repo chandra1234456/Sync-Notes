@@ -10,11 +10,13 @@ import com.chandra.syncnote.domain.model.NotesFilter
 import com.chandra.syncnote.domain.model.OrderOption
 import com.chandra.syncnote.domain.usecases.NoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -88,19 +90,16 @@ class NoteViewModel @Inject constructor(
             }
         }
     }
+    private val _editNote = MutableStateFlow<Note?>(null) // nullable Note
+    val editNote: StateFlow<Note?> = _editNote.asStateFlow()
 
-    fun getNoteById(id: Int, onResult: (Note?) -> Unit) {
+    fun getNoteById(id: Int) {
         viewModelScope.launch {
-            val note = noteUseCase.getNoteByIdUseCase(id)
-            onResult(note)
+            val note = noteUseCase.getNoteByIdUseCase(id) // assume this returns Note
+            _editNote.value = note
         }
     }
 
-    fun deleteAllNotes() {
-        viewModelScope.launch {
-         //   noteUseCase.deleteAllNotesUseCase()
-        }
-    }
 
     fun restoreNote(note: Note) {
         viewModelScope.launch {
@@ -130,6 +129,13 @@ class NoteViewModel @Inject constructor(
             sortedList.reversed()
         } else sortedList
     }
+
+    fun updateNote(note: Note) {
+        viewModelScope.launch {
+            noteUseCase.editNotesUseCase(note)
+        }
+    }
+
 }
 
 
