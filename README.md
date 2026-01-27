@@ -21,10 +21,12 @@ This project is intended as a reference for beginners learning Clean Architectur
 
 <br/>
 <p>
-  <img src="app/src/main/assets/screenshots/navigation.jpg" width="200" alt=""/>
-  <img src="app/src/main/assets/screenshots/homescreen.jpg" width="200" alt=""/>
-  <img src="app/src/main/assets/screenshots/addnewnote.jpg" width="200" alt=""/>
-  <img src="app/src/main/assets/screenshots/bottomsheet.png.jpg" width="200" alt=""/>
+  <img src="app/src/main/assets/screenshots/navigation.png" width="200" alt=""/>
+  <img src="app/src/main/assets/screenshots/home_screen.png" width="200" alt=""/>
+  <img src="app/src/main/assets/screenshots/add_new_note.png" width="200" alt=""/>
+  <img src="app/src/main/assets/screenshots/bottom_sheet.png" width="200" alt=""/>
+  <img src="app/src/main/assets/screenshots/edit_note.png" width="200" alt=""/>
+  <img src="app/src/main/assets/screenshots/delete_note.png" width="200" alt=""/>
 </p>
 
 <br />
