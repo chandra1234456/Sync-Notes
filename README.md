@@ -33,12 +33,12 @@ This project is intended as a reference for beginners learning Clean Architectur
 
 
 🌟 Features
-✔ Create notes
-✔ Edit notes
-✔ Delete notes
-✔ Sort notes (Title, Created Date, Modified Date)
-✔ Order (Ascending / Descending)
-✔ BottomSheet with single-selection chips
-✔ Local persistence using Room
-✔ Search notes
-✔ Modern clean UI (Material 3 + Compose)
+-Create notes
+-Edit notes
+-Delete notes
+-Sort notes (Title, Created Date, Modified Date)
+-Order (Ascending / Descending)
+-BottomSheet with single-selection chips
+-Local persistence using Room
+-Search notes
+-Modern clean UI (Material 3 + Compose)
