@@ -184,6 +184,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-placeholder-material3:0.36.0") //Shimmer + Animation
     implementation("androidx.profileinstaller:profileinstaller:1.4.1")
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 }
 
 kapt {
