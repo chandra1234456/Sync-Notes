@@ -1,4 +1,3 @@
-
 fun prop(key: String) = project.findProperty(key) as String
 plugins {
     alias(libs.plugins.android.application)
@@ -34,24 +33,24 @@ android {
             }
         }
     }
-   signingConfigs {
-      /* create("release") {
-           /*val keystorePath = project.findProperty("STORE_FILE") as String?
-               ?: throw GradleException("STORE_FILE not defined in gradle.properties")
-           val keystoreFile = file(keystorePath)
+    signingConfigs {
+        /* create("release") {
+             /*val keystorePath = project.findProperty("STORE_FILE") as String?
+                 ?: throw GradleException("STORE_FILE not defined in gradle.properties")
+             val keystoreFile = file(keystorePath)
 
-           if (!keystoreFile.exists()) {
-               throw GradleException("Keystore file not found at: $keystoreFile")
-           }*/
+             if (!keystoreFile.exists()) {
+                 throw GradleException("Keystore file not found at: $keystoreFile")
+             }*/
 
-           //storeFile = keystoreFile
-           storeFile = file("C:/Users/balachandra.d/AndroidStudioProjects/sync_note.jks")
-           storePassword = project.findProperty("STORE_PASSWORD") as String
-           keyAlias = project.findProperty("KEY_ALIAS") as String
-           keyPassword = project.findProperty("KEY_PASSWORD") as String
+             //storeFile = keystoreFile
+             storeFile = file("C:/Users/balachandra.d/AndroidStudioProjects/sync_note.jks")
+             storePassword = project.findProperty("STORE_PASSWORD") as String
+             keyAlias = project.findProperty("KEY_ALIAS") as String
+             keyPassword = project.findProperty("KEY_PASSWORD") as String
 
-           println("Keystore file path: ") // This will print during Gradle sync/build
-       }*/
+             println("Keystore file path: ") // This will print during Gradle sync/build
+         }*/
     }
 
     buildTypes {
@@ -93,27 +92,31 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-   /* java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-        }
-    }
+    /* java {
+         toolchain {
+             languageVersion.set(JavaLanguageVersion.of(17))
+         }
+     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "17"
-        }
-    }*/
+     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+         kotlinOptions {
+             jvmTarget = "17"
+         }
+     }*/
 
     buildFeatures {
         compose = true
         buildConfig = true
+        viewBinding = true
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/*"
         }
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
 
     lint {
@@ -185,6 +188,11 @@ dependencies {
     implementation("androidx.profileinstaller:profileinstaller:1.4.1")
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // For AppWidgets support
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    // For interop APIs with Material 3
+    implementation("androidx.glance:glance-material3:1.1.1")
 }
 
 kapt {
